@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:24
 
 # Set the working directory
 WORKDIR /app
@@ -19,4 +19,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Start the Next.js application
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
