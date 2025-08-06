@@ -7,7 +7,7 @@ const mockEvents = [
   {
     id: "1",
     title: "Meeting with Team",
-    startTime: new Date("2025-08-06T09:00:00Z"), // <-- Note the Z
+    startTime: new Date("2025-08-06T09:00:00Z"), // <-- Z means UTC
     endTime: new Date("2025-08-06T10:00:00Z"),
     description: "Discuss project updates",
   },
