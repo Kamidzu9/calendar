@@ -1,36 +1,201 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📆 Calendar App
 
-## Getting Started
+[![Next.js](https://img.shields.io/badge/Next.js-15.4.5-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-4.1-38B2AC)](https://tailwindcss.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)](https://www.docker.com/)
 
-First, run the development server:
+A modern, responsive calendar application built with Next.js, TypeScript, and PostgreSQL. View and manage your events with a clean, intuitive interface.
+
+## 🌟 Features
+
+- **📅 Event Management**: View events in a clean, organized interface
+- **🔔 Notifications**: Get toast notifications for event interactions
+- **🎨 Modern UI**: Beautiful animations powered by Framer Motion
+- **🌙 Dark Mode Support**: Automatic theme switching based on system preferences
+- **📱 Responsive Design**: Works on desktop and mobile devices
+- **🔒 Database Ready**: PostgreSQL integration via Docker
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 15.4, React 19.1, TypeScript
+- **Styling**: Tailwind CSS 4.1, Geist font
+- **UI Components**: Headless UI, Heroicons
+- **Animations**: Framer Motion
+- **State Management**: React hooks
+- **Database**: PostgreSQL 17.5 (via Docker)
+- **Containerization**: Docker & Docker Compose
+- **Date Handling**: date-fns, date-fns-tz
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v18+)
+- npm or yarn
+- Docker & Docker Compose (for database)
+
+### Installation
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/yourusername/calendar.git
+cd calendar
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Start the development server**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000) to see your application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Docker Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run the entire application stack (Next.js app + PostgreSQL) with Docker Compose:
 
-## Learn More
+```bash
+docker compose up
+```
 
-To learn more about Next.js, take a look at the following resources:
+This will:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Build and start the Next.js application
+- Start a PostgreSQL database
+- Connect them with the proper environment variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📂 Project Structure
 
-## Deploy on Vercel
+```
+calendar/
+├── app/                  # Next.js App Router
+│   ├── components/       # React components
+│   │   ├── Calendar.tsx  # Calendar component
+│   │   └── Event.tsx     # Event component
+│   ├── styles/           # Global styles
+│   │   └── globals.css   # Tailwind imports and global CSS
+│   ├── types/            # TypeScript definitions
+│   │   └── index.ts      # Shared types (Event, CalendarProps)
+│   ├── layout.tsx        # Root layout with font setup
+│   └── page.tsx          # Home page (Calendar view)
+├── public/               # Static assets
+├── docker-compose.yml    # Docker configuration
+├── Dockerfile            # Docker build instructions
+└── next.config.ts        # Next.js configuration
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ⚙️ Configuration
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Environment Variables
+
+The application uses the following environment variables:
+
+```
+DATABASE_URL=postgresql://user:password@postgres:5432/mydatabase
+```
+
+These are already configured in [`docker-compose.yml`](docker-compose.yml) for local development.
+
+### Date Settings
+
+For consistent date rendering between server and client, always use UTC dates with the `Z` suffix:
+
+```typescript
+// Good (UTC)
+new Date("2025-08-06T09:00:00Z");
+
+// Avoid (local timezone)
+new Date("2025-08-06T09:00:00");
+```
+
+When formatting dates for display, use the [`formatInTimeZone`](node_modules/date-fns-tz/dist/esm/formatInTimeZone/index.d.ts) function from `date-fns-tz`:
+
+```typescript
+import { formatInTimeZone } from "date-fns-tz";
+
+// Format in UTC to avoid hydration errors
+formatInTimeZone(date, "UTC", "HH:mm");
+```
+
+## 📝 Development Notes
+
+### Avoiding Hydration Errors
+
+The project uses Next.js server components. To avoid hydration errors:
+
+1. Use `"use client"` directive in components using browser-specific libraries
+2. Use fixed dates or UTC formatting for consistent rendering
+3. Avoid dynamic content that differs between server and client render
+
+### Adding New Events
+
+Events follow this structure:
+
+```typescript
+{
+  id: string;
+  title: string;
+  startTime: Date;  // Use UTC dates
+  endTime: Date;    // Use UTC dates
+  description?: string;
+}
+```
+
+## 🚢 Deployment
+
+### Vercel (Recommended)
+
+The easiest way to deploy this Next.js app is with [Vercel](https://vercel.com):
+
+1. Push your code to a GitHub repository
+2. Import the project in Vercel
+3. Configure environment variables
+4. Deploy
+
+### Docker Deployment
+
+For custom hosting:
+
+```bash
+# Build the Docker image
+docker build -t calendar-app .
+
+# Run the container
+docker run -p 3000:3000 calendar-app
+```
+
+## 🔮 Future Improvements
+
+- [ ] User authentication system
+- [ ] Event creation/editing
+- [ ] Calendar navigation (month/week/day views)
+- [ ] Recurring events
+- [ ] Email notifications
+- [ ] Calendar sharing
+- [ ] Mobile app with React Native
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+Built with ❤️ using Next.js and React
