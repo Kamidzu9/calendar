@@ -1,13 +1,15 @@
 import { CalendarDaysIcon } from "@heroicons/react/24/outline";
 import Calendar from "./components/Calendar";
+import type { Event } from "./types";
 
-const fixedDate = new Date("2025-08-06T00:00:00"); // Use a fixed date
+// Use a fixed date for SSR determinism
+const fixedDate = new Date("2025-08-06T00:00:00");
 
-const mockEvents = [
+const mockEvents: Event[] = [
   {
     id: "1",
     title: "Meeting with Team",
-    startTime: new Date("2025-08-06T09:00:00Z"), // <-- Z means UTC
+    startTime: new Date("2025-08-06T09:00:00Z"), // UTC input
     endTime: new Date("2025-08-06T10:00:00Z"),
     description: "Discuss project updates",
   },
@@ -23,7 +25,7 @@ const mockEvents = [
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col items-center justify-start py-12 px-4">
-      <div className="w-full max-w-xl">
+      <div className="w-full max-w-5xl">
         <div className="flex items-center justify-center mb-8">
           <CalendarDaysIcon className="h-10 w-10 text-blue-700 dark:text-blue-300 mr-2" />
           <h1 className="text-4xl font-extrabold text-center text-blue-700 dark:text-blue-300 drop-shadow">
