@@ -1,0 +1,16 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" fill="#0b63f6" rx="24"/>
+  <rect x="24" y="48" width="144" height="120" fill="white" rx="8"/>
+  <rect x="24" y="24" width="144" height="36" fill="white" rx="8"/>
+  <circle cx="48" cy="42" r="6" fill="#0b63f6"/>
+  <circle cx="144" cy="42" r="6" fill="#0b63f6"/>
+  <line x1="48" y1="72" x2="168" y2="72" stroke="#e5e7eb" stroke-width="1"/>
+  <line x1="48" y1="96" x2="168" y2="96" stroke="#e5e7eb" stroke-width="1"/>
+  <line x1="48" y1="120" x2="168" y2="120" stroke="#e5e7eb" stroke-width="1"/>
+  <line x1="48" y1="144" x2="168" y2="144" stroke="#e5e7eb" stroke-width="1"/>
+  <line x1="72" y1="72" x2="72" y2="168" stroke="#e5e7eb" stroke-width="1"/>
+  <line x1="96" y1="72" x2="96" y2="168" stroke="#e5e7eb" stroke-width="1"/>
+  <line x1="120" y1="72" x2="120" y2="168" stroke="#e5e7eb" stroke-width="1"/>
+  <line x1="144" y1="72" x2="144" y2="168" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="96" y="110" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#0b63f6">15</text>
+</svg>

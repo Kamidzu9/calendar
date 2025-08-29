@@ -1,13 +1,36 @@
+/**
+ * Main Calendar Component
+ * 
+ * This is the core calendar component that manages the entire calendar state,
+ * handles event CRUD operations, and renders different calendar views.
+ * 
+ * Features:
+ * - Multi-view support (Day, Week, Month)
+ * - Event creation, editing, and deletion
+ * - Search and filtering functionality
+ * - LocalStorage persistence
+ * - PWA-ready with offline support
+ * - Responsive design
+ * 
+ * @example
+ * ```tsx
+ * <Calendar 
+ *   currentDate={new Date()} 
+ *   events={[]} 
+ * />
+ * ```
+ */
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Dialog } from "@headlessui/react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import EventItem from "./EventItem";
 import AddEventDialog from "./AddEventDialog";
+import EditEventDialog from "./EditEventDialog";
 import CalendarHeader from "./CalendarHeader";
+import SearchAndFilter from "./SearchAndFilter";
 
 import {
   deserializeEvents,
@@ -21,8 +44,13 @@ import {
 import type { Event, ViewMode } from "../types";
 import { addDays } from "date-fns";
 
+/**
+ * Calendar component props
+ */
 interface CalendarProps {
+  /** Initial date to display in the calendar */
   currentDate: Date;
+  /** Initial events to load (typically empty for fresh start) */
   events: Event[]; // initial events for hydration
 }
 
@@ -32,8 +60,10 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
   const [view, setView] = useState<ViewMode>("day");
   const [date, setDate] = useState<Date>(currentDate);
   const [items, setItems] = useState<Event[]>(events);
-  const [selected, setSelected] = useState<Event | null>(null);
+  const [filteredItems, setFilteredItems] = useState<Event[]>(events);
   const [addOpen, setAddOpen] = useState(false);
+  const [editEvent, setEditEvent] = useState<Event | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
 
   // Hydrate from localStorage (client-only) and persist on changes
   useEffect(() => {
@@ -86,8 +116,8 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
   const onToday = () => setDate(new Date());
 
   const dayEvents = useMemo(
-    () => sortEvents(items.filter((e) => sameDay(e.startTime, date))),
-    [items, date]
+    () => sortEvents(filteredItems.filter((e) => sameDay(e.startTime, date))),
+    [filteredItems, date]
   );
 
   const weekDays = useMemo(() => getWeekDays(date), [date]);
@@ -95,15 +125,15 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
     () =>
       weekDays.map((d) => ({
         day: d,
-        events: sortEvents(items.filter((e) => sameDay(e.startTime, d))),
+        events: sortEvents(filteredItems.filter((e) => sameDay(e.startTime, d))),
       })),
-    [items, weekDays]
+    [filteredItems, weekDays]
   );
 
   const monthGrid = useMemo(() => getMonthGrid(date), [date]);
   const monthEventsMap = useMemo(() => {
     const map = new Map<number, Event[]>();
-    items.forEach((e) => {
+    filteredItems.forEach((e) => {
       const key = new Date(
         e.startTime.getFullYear(),
         e.startTime.getMonth(),
@@ -114,8 +144,12 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
       map.set(key, arr);
     });
     return map;
-  }, [items]);
+  }, [filteredItems]);
 
+  /**
+   * Creates a new event and adds it to the calendar
+   * Includes overlap detection and validation
+   */
   const handleCreate = (data: Omit<Event, 'id'>) => {
     const id =
       typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -136,17 +170,25 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
     toast.success("✅ Event created successfully!");
   };
 
+  /**
+   * Deletes an event from the calendar
+   */
   const handleDelete = (id: string) => {
     setItems((prev) => prev.filter((e) => e.id !== id));
-    setSelected(null);
-    toast.info("Event deleted");
   };
 
+  /**
+   * Updates an existing event in the calendar
+   */
+  const handleUpdate = (updatedEvent: Event) => {
+    setItems((prev) => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+  };
+
+  /**
+   * Opens the edit dialog for a selected event
+   */
   const handleEventClick = (e: Event) => {
-    setSelected(e);
-    toast.info(
-      `Event: ${e.title} (${fmtTime(e.startTime)}–${fmtTime(e.endTime)})`
-    );
+    setEditEvent(e);
   };
 
   return (
@@ -160,10 +202,22 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
         onToday={onToday}
         onChangeView={setView}
         onAdd={openAdd}
+        onToggleSearch={() => setShowSearch(!showSearch)}
+        showSearch={showSearch}
       />
       <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
         Times shown in <strong>{timezone}</strong>.
       </p>
+
+      {/* Search and Filter */}
+      {showSearch && (
+        <div className="mt-4">
+          <SearchAndFilter
+            events={items}
+            onFilteredEventsChange={setFilteredItems}
+          />
+        </div>
+      )}
 
       <div className="mt-4">
         {view === "day" && (
@@ -277,44 +331,13 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
         onSubmit={handleCreate}
       />
 
-      {/* Event Details */}
-      <Dialog
-        open={!!selected}
-        onClose={() => setSelected(null)}
-        className="fixed z-20 inset-0 overflow-y-auto"
-      >
-        <div className="flex items-center justify-center min-h-screen px-2">
-          <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700 max-w-sm w-full mx-auto">
-            <Dialog.Title className="text-2xl font-bold mb-2 text-blue-700 dark:text-blue-300">
-              {selected?.title}
-            </Dialog.Title>
-            {selected && (
-              <Dialog.Description className="mb-2 text-gray-600 dark:text-gray-400">
-                {fmtTime(selected.startTime)} – {fmtTime(selected.endTime)}
-              </Dialog.Description>
-            )}
-            <p className="mb-4 text-gray-800 dark:text-gray-200">
-              {selected?.description || "No description"}
-            </p>
-            <div className="flex gap-2">
-              {selected && (
-                <button
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                  onClick={() => handleDelete(selected.id)}
-                >
-                  Delete
-                </button>
-              )}
-              <button
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={() => setSelected(null)}
-              >
-                Close
-              </button>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
+      {/* Edit Event */}
+      <EditEventDialog
+        event={editEvent}
+        onClose={() => setEditEvent(null)}
+        onUpdate={handleUpdate}
+        onDelete={handleDelete}
+      />
     </div>
   );
 };
