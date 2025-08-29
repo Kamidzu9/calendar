@@ -116,12 +116,7 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
     return map;
   }, [items]);
 
-  const handleCreate = (data: {
-    title: string;
-    description?: string;
-    startTime: Date;
-    endTime: Date;
-  }) => {
+  const handleCreate = (data: Omit<Event, 'id'>) => {
     const id =
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
@@ -135,9 +130,10 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
         data.startTime < e.endTime
     );
     if (overlaps) {
-      toast.warn("This overlaps with another event");
+      toast.warn("⚠️ This event overlaps with another event");
     }
     setItems((prev) => sortEvents([...prev, newEvent]));
+    toast.success("✅ Event created successfully!");
   };
 
   const handleDelete = (id: string) => {
@@ -187,10 +183,7 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
                     transition={{ duration: 0.2 }}
                   >
                     <EventItem
-                      title={event.title}
-                      start={event.startTime}
-                      end={event.endTime}
-                      description={event.description}
+                      event={event}
                       onClick={() => handleEventClick(event)}
                     />
                   </motion.div>
@@ -220,10 +213,7 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events }) => {
                     events.map((e) => (
                       <EventItem
                         key={e.id}
-                        title={e.title}
-                        start={e.startTime}
-                        end={e.endTime}
-                        description={e.description}
+                        event={e}
                         onClick={() => handleEventClick(e)}
                       />
                     ))
