@@ -6,6 +6,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   PlusIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 
 interface CalendarHeaderProps {
@@ -16,6 +17,8 @@ interface CalendarHeaderProps {
   onToday: () => void;
   onChangeView: (view: ViewMode) => void;
   onAdd: () => void;
+  onToggleSearch?: () => void;
+  showSearch?: boolean;
 }
 
 export default function CalendarHeader({
@@ -26,6 +29,8 @@ export default function CalendarHeader({
   onToday,
   onChangeView,
   onAdd,
+  onToggleSearch,
+  showSearch = false,
 }: CalendarHeaderProps) {
   return (
     <div className="flex items-center justify-between gap-3 sticky top-0 z-10 bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-4 px-3 rounded-xl shadow-sm">
@@ -73,13 +78,28 @@ export default function CalendarHeader({
             </button>
           ))}
         </div>
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-blue-400"
-          aria-label="Add event"
-          onClick={onAdd}
-        >
-          <PlusIcon className="h-6 w-6" />
-        </button>
+        <div className="flex gap-2">
+          {onToggleSearch && (
+            <button
+              className={`${
+                showSearch 
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                  : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+              } rounded-full p-3 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-blue-400`}
+              aria-label={showSearch ? "Hide search" : "Show search"}
+              onClick={onToggleSearch}
+            >
+              <MagnifyingGlassIcon className="h-6 w-6" />
+            </button>
+          )}
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-blue-400"
+            aria-label="Add event"
+            onClick={onAdd}
+          >
+            <PlusIcon className="h-6 w-6" />
+          </button>
+        </div>
       </div>
     </div>
   );

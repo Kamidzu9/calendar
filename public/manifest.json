@@ -1,0 +1,42 @@
+{
+  "name": "Calendar App - Modern Event Management",
+  "short_name": "Calendar App",
+  "description": "A modern, responsive calendar application with event management",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0b63f6",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "lifestyle"],
+  "lang": "en",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Event",
+      "short_name": "Add Event",
+      "description": "Quickly add a new event",
+      "url": "/?action=add",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "48x48"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "form_factor": "wide"
+    }
+  ]
+}

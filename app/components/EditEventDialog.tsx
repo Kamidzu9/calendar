@@ -3,23 +3,23 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Dialog, Transition, Listbox } from "@headlessui/react";
 import { Fragment } from "react";
 import { toast } from "react-toastify";
-import { ChevronDownIcon, CheckIcon } from "@heroicons/react/20/solid";
+import { ChevronDownIcon, CheckIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { fmtDate, DEFAULT_CATEGORIES, sanitizeEventInput, validateEventData } from "../utils/dates";
 import type { Event, EventCategory } from "../types";
 
-interface AddEventDialogProps {
-  open: boolean;
-  date: Date;
+interface EditEventDialogProps {
+  event: Event | null;
   onClose: () => void;
-  onSubmit: (data: Omit<Event, 'id'>) => void;
+  onUpdate: (event: Event) => void;
+  onDelete: (eventId: string) => void;
 }
 
-export default function AddEventDialog({
-  open,
-  date,
+export default function EditEventDialog({
+  event,
   onClose,
-  onSubmit,
-}: AddEventDialogProps) {
+  onUpdate,
+  onDelete,
+}: EditEventDialogProps) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [start, setStart] = useState("09:00");
@@ -29,29 +29,33 @@ export default function AddEventDialog({
   const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    if (open) {
-      setTitle("");
-      setDesc("");
-      setStart("09:00");
-      setEnd("10:00");
-      setLocation("");
-      setCategory(DEFAULT_CATEGORIES[0]);
+    if (event) {
+      setTitle(event.title);
+      setDesc(event.description || "");
+      setStart(event.startTime.toTimeString().slice(0, 5));
+      setEnd(event.endTime.toTimeString().slice(0, 5));
+      setLocation(event.location || "");
+      setCategory(event.category || DEFAULT_CATEGORIES[0]);
       setErrors([]);
     }
-  }, [open]);
+  }, [event]);
 
   const computed = useMemo(() => {
+    if (!event) return { startDate: new Date(), endDate: new Date() };
+    
     const [sh, sm] = start.split(":").map(Number);
     const [eh, em] = end.split(":").map(Number);
-    const startDate = new Date(date);
+    const startDate = new Date(event.startTime);
     startDate.setHours(sh ?? 0, sm ?? 0, 0, 0);
-    const endDate = new Date(date);
+    const endDate = new Date(event.startTime);
     endDate.setHours(eh ?? 0, em ?? 0, 0, 0);
     return { startDate, endDate };
-  }, [date, start, end]);
+  }, [event, start, end]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!event) return;
     
     const sanitizedTitle = sanitizeEventInput(title);
     const sanitizedDesc = sanitizeEventInput(desc);
@@ -74,7 +78,8 @@ export default function AddEventDialog({
       return;
     }
     
-    onSubmit({
+    const updatedEvent: Event = {
+      ...event,
       title: sanitizedTitle,
       description: sanitizedDesc || undefined,
       location: sanitizedLocation || undefined,
@@ -82,14 +87,27 @@ export default function AddEventDialog({
       endTime: computed.endDate,
       category,
       color: category.color,
-    } as Omit<Event, 'id'>);
+    };
     
+    onUpdate(updatedEvent);
     onClose();
-    toast.success("Event created successfully!");
+    toast.success("Event updated successfully!");
   };
 
+  const handleDelete = () => {
+    if (!event) return;
+    
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      onDelete(event.id);
+      onClose();
+      toast.success("Event deleted successfully!");
+    }
+  };
+
+  if (!event) return null;
+
   return (
-    <Transition show={open} as={Fragment}>
+    <Transition show={!!event} as={Fragment}>
       <Dialog onClose={onClose} className="relative z-50">
         <Transition.Child
           as={Fragment}
@@ -114,10 +132,11 @@ export default function AddEventDialog({
             leaveTo="opacity-0 scale-95 translate-y-2"
           >
             <Dialog.Panel className="w-full max-w-md rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
-              <Dialog.Title className="text-xl font-bold text-blue-700 dark:text-blue-300">
-                Add event for {fmtDate(date)}
+              <Dialog.Title className="text-xl font-bold text-blue-700 dark:text-blue-300 mb-4">
+                Edit event for {fmtDate(event.startTime)}
               </Dialog.Title>
-              <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
+              
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <label className="block">
                   <span className="text-sm text-gray-700 dark:text-gray-300">
                     Title
@@ -130,6 +149,7 @@ export default function AddEventDialog({
                     required
                   />
                 </label>
+                
                 <label className="block">
                   <span className="text-sm text-gray-700 dark:text-gray-300">
                     Description
@@ -142,6 +162,7 @@ export default function AddEventDialog({
                     rows={3}
                   />
                 </label>
+                
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block">
                     <span className="text-sm text-gray-700 dark:text-gray-300">
@@ -252,16 +273,25 @@ export default function AddEventDialog({
                 <div className="pt-2 flex gap-2">
                   <button
                     type="button"
+                    onClick={handleDelete}
+                    className="flex items-center gap-2 px-3 py-2 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                    Delete
+                  </button>
+                  <div className="flex-1"></div>
+                  <button
+                    type="button"
                     onClick={onClose}
-                    className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 rounded-md bg-blue-600 text-white px-3 py-2 hover:bg-blue-700"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    Create
+                    Update
                   </button>
                 </div>
               </form>
